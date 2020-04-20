@@ -11,8 +11,8 @@ import (
 
 import (
 	context "context"
-	client "github.com/micro/go-micro/v2/client"
-	server "github.com/micro/go-micro/v2/server"
+	client "github.com/micro/go-micro/client"
+	server "github.com/micro/go-micro/server"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -31,26 +31,32 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Client API for Example service
+// Client API for Demo service
 
-type ExampleService interface {
+type DemoService interface {
 	Call(ctx context.Context, in *CallRequest, opts ...client.CallOption) (*CallResponse, error)
 }
 
-type exampleService struct {
+type demoService struct {
 	c    client.Client
 	name string
 }
 
-func NewExampleService(name string, c client.Client) ExampleService {
-	return &exampleService{
+func NewDemoService(name string, c client.Client) DemoService {
+	if c == nil {
+		c = client.NewClient()
+	}
+	if len(name) == 0 {
+		name = "demo"
+	}
+	return &demoService{
 		c:    c,
 		name: name,
 	}
 }
 
-func (c *exampleService) Call(ctx context.Context, in *CallRequest, opts ...client.CallOption) (*CallResponse, error) {
-	req := c.c.NewRequest(c.name, "Example.Call", in)
+func (c *demoService) Call(ctx context.Context, in *CallRequest, opts ...client.CallOption) (*CallResponse, error) {
+	req := c.c.NewRequest(c.name, "Demo.Call", in)
 	out := new(CallResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -59,80 +65,27 @@ func (c *exampleService) Call(ctx context.Context, in *CallRequest, opts ...clie
 	return out, nil
 }
 
-// Server API for Example service
+// Server API for Demo service
 
-type ExampleHandler interface {
+type DemoHandler interface {
 	Call(context.Context, *CallRequest, *CallResponse) error
 }
 
-func RegisterExampleHandler(s server.Server, hdlr ExampleHandler, opts ...server.HandlerOption) error {
-	type example interface {
+func RegisterDemoHandler(s server.Server, hdlr DemoHandler, opts ...server.HandlerOption) error {
+	type demo interface {
 		Call(ctx context.Context, in *CallRequest, out *CallResponse) error
 	}
-	type Example struct {
-		example
+	type Demo struct {
+		demo
 	}
-	h := &exampleHandler{hdlr}
-	return s.Handle(s.NewHandler(&Example{h}, opts...))
+	h := &demoHandler{hdlr}
+	return s.Handle(s.NewHandler(&Demo{h}, opts...))
 }
 
-type exampleHandler struct {
-	ExampleHandler
+type demoHandler struct {
+	DemoHandler
 }
 
-func (h *exampleHandler) Call(ctx context.Context, in *CallRequest, out *CallResponse) error {
-	return h.ExampleHandler.Call(ctx, in, out)
-}
-
-// Client API for Foo service
-
-type FooService interface {
-	Bar(ctx context.Context, in *EmptyRequest, opts ...client.CallOption) (*EmptyResponse, error)
-}
-
-type fooService struct {
-	c    client.Client
-	name string
-}
-
-func NewFooService(name string, c client.Client) FooService {
-	return &fooService{
-		c:    c,
-		name: name,
-	}
-}
-
-func (c *fooService) Bar(ctx context.Context, in *EmptyRequest, opts ...client.CallOption) (*EmptyResponse, error) {
-	req := c.c.NewRequest(c.name, "Foo.Bar", in)
-	out := new(EmptyResponse)
-	err := c.c.Call(ctx, req, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Server API for Foo service
-
-type FooHandler interface {
-	Bar(context.Context, *EmptyRequest, *EmptyResponse) error
-}
-
-func RegisterFooHandler(s server.Server, hdlr FooHandler, opts ...server.HandlerOption) error {
-	type foo interface {
-		Bar(ctx context.Context, in *EmptyRequest, out *EmptyResponse) error
-	}
-	type Foo struct {
-		foo
-	}
-	h := &fooHandler{hdlr}
-	return s.Handle(s.NewHandler(&Foo{h}, opts...))
-}
-
-type fooHandler struct {
-	FooHandler
-}
-
-func (h *fooHandler) Bar(ctx context.Context, in *EmptyRequest, out *EmptyResponse) error {
-	return h.FooHandler.Bar(ctx, in, out)
+func (h *demoHandler) Call(ctx context.Context, in *CallRequest, out *CallResponse) error {
+	return h.DemoHandler.Call(ctx, in, out)
 }

@@ -2,7 +2,7 @@
 
 本示例我们介绍如何使用RPC handler模式的**Micro API**，以下简称**API**。
 
-该模式下允许我们通过RPC的方式把HTTP请求转发到go-micro微服务上。
+该模式下允许我们通过RPC的方式把HTTP请求`转发到go-micro微服务上`。
 
 需要提醒的是，RPC模式下**API**只接收POST方式的请求，并且只消费（consume）内容格式**content-type**为**application/json**或者**application/protobuf**。
 
