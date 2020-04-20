@@ -2,14 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/micro/go-micro/v2"
-	"github.com/micro/go-micro/v2/transport/grpc"
-	"github.com/micro/go-micro/v2/web"
+	"github.com/micro/go-micro"
+	"github.com/micro/go-micro/transport/grpc"
+	"github.com/micro/go-micro/web"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 var upGrader = websocket.Upgrader{
@@ -66,7 +66,7 @@ func hi2(w http.ResponseWriter, r *http.Request) {
 func hi(w http.ResponseWriter, r *http.Request) {
 	c, err := upGrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("upgrade: %s", err)
+		log.Infof("upgrade: %s", err)
 		return
 	}
 
@@ -74,15 +74,15 @@ func hi(w http.ResponseWriter, r *http.Request) {
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("read:", err)
+			log.Infof("read:", err)
 			break
 		}
 
-		log.Printf("recv: %s", message)
+		log.Infof("recv: %s", message)
 
 		err = c.WriteMessage(mt, message)
 		if err != nil {
-			log.Println("write:", err)
+			log.Infof("write:", err)
 			break
 		}
 	}
